@@ -3,8 +3,8 @@
 sed -i 's/#Port 22/Port 22/' /etc/ssh/sshd_config
 po=$(cat /etc/ssh/sshd_config | grep "^Port")
 port=$(echo "$po" | sed "s/Port //g")
-adminuser=$(mysql -N -e "use ShaHaN; select adminuser from setting;")
-adminpass=$(mysql -N -e "use ShaHaN; select adminpassword from setting;")
+adminuser=$(mysql -N -e "use admin; select adminuser from setting;")
+adminpass=$(mysql -N -e "use admin; select adminpassword from setting;")
 if [ "$adminuser" != "" ]; then
 adminusername=$adminuser
 adminpassword=$adminpass
@@ -16,7 +16,7 @@ read usernametmp
 if [[ -n "${usernametmp}" ]]; then
     adminusername=${usernametmp}
 fi
-adminpassword=123456
+adminpassword=admin
 echo -e "\nPlease input Panel admin password."
 printf "Default password is \e[33m${adminpassword}\e[0m, let it blank to use this password : "
 read passwordtmp
@@ -69,23 +69,23 @@ wait
 echo 'AuthType Basic
 AuthName "Restricted Content"
 AuthUserFile /etc/apache2/.htpasswd
-Require valid-user' >> /var/www/html/p/.htaccess
+Require valid-user' >> /var/www/html/dashboard/.htaccess
 echo '<VirtualHost *:80>
-<Directory "/var/www/html/p">
+<Directory "/var/www/html/dashboard">
         AuthType Basic
         AuthName "Restricted Content"
         AuthUserFile /etc/apache2/.htpasswd
         Require valid-user
     </Directory>
 </VirtualHost>' >> /etc/apache2/sites-enabled/000-default.conf
-echo '<Directory /var/www/html/p/>
+echo '<Directory /var/www/html/dashboard/>
     Options Indexes FollowSymLinks
     AllowOverride All
     Require all granted
 </Directory>' >> /etc/apache2/apache2.conf
 sudo service apache2 restart
 sudo htpasswd -b -c /etc/apache2/.htpasswd ${adminusername} ${adminpassword}
-chown www-data:www-data /var/www/html/p/* &
+chown www-data:www-data /var/www/html/dashboard/* &
 wait
 systemctl restart mariadb &
 wait
@@ -148,16 +148,16 @@ port=$(echo "$po" | sed "s/Port //g")
 echo 'AuthType Basic
 AuthName "Restricted Content"
 AuthUserFile /etc/httpd/.htpasswd
-Require valid-user' >> /var/www/html/p/.htaccess
+Require valid-user' >> /var/www/html/dashboard/.htaccess
 echo '<VirtualHost *:80>
-<Directory "/var/www/html/p">
+<Directory "/var/www/html/dashboard">
         AuthType Basic
         AuthName "Restricted Content"
         AuthUserFile /etc/httpd/.htpasswd
         Require valid-user
     </Directory>
 </VirtualHost>' >> /etc/httpd/conf/httpd.conf
-echo '<Directory /var/www/html/p/>
+echo '<Directory /var/www/html/dashboard/>
     Options Indexes FollowSymLinks
     AllowOverride All
     Require all granted
@@ -165,9 +165,9 @@ echo '<Directory /var/www/html/p/>
 systemctl restart httpd
 systemctl enable httpd
 sudo htpasswd -b -c /etc/httpd/.htpasswd ${adminusername} ${adminpassword}
-chown apache:apache /var/www/html/p/* &
+chown apache:apache /var/www/html/dashboard/* &
 wait
-sudo sed -i "s/apache2/httpd/g" /var/www/html/p/setting.php &
+sudo sed -i "s/apache2/httpd/g" /var/www/html/dashboard/setting.php &
 wait
 chmod 644 /etc/ssh/sshd_config &
 wait
@@ -181,7 +181,7 @@ else
   echo "Wait For New Update !!"
 fi
 
-mysql -e "create database ShaHaN;" &
+mysql -e "create database admin;" &
 wait
 
 mysql -e "CREATE USER '${adminusername}'@'localhost' IDENTIFIED BY '${adminpassword}';" &
@@ -193,22 +193,22 @@ wait
 
 
 
-sudo sed -i "s/22/$port/g" /var/www/html/p/config.php &
+sudo sed -i "s/22/$port/g" /var/www/html/dashboard/config.php &
 wait 
-sudo sed -i "s/adminuser/$adminusername/g" /var/www/html/p/config.php &
+sudo sed -i "s/adminuser/$adminusername/g" /var/www/html/dashboard/config.php &
 wait 
-sudo sed -i "s/adminpass/$adminpassword/g" /var/www/html/p/config.php &
+sudo sed -i "s/adminpass/$adminpassword/g" /var/www/html/dashboard/config.php &
 wait 
-curl -u "$adminusername:$adminpassword" "http://${ipv4}/p/restoretarikh.php"
+curl -u "$adminusername:$adminpassword" "http://${ipv4}/dashboard/restoretarikh.php"
 
-cp /var/www/html/p/tarikh /var/www/html/p/backup/tarikh
+cp /var/www/html/dashboard/tarikh /var/www/html/dashboard/backup/tarikh
 
 rm -fr /var/www/html/p/tarikh
-echo "5 0 * * * php /var/www/html/p/expire.php >/dev/null 2>&1" | crontab - &
+echo "5 0 * * * php /var/www/html/dashboard/expire.php >/dev/null 2>&1" | crontab - &
 wait
 
 clear
-printf "\nPanel Link : http://${ipv4}/p/index.php"
+printf "\nPanel Link : http://${ipv4}/dashboard/index.php"
 printf "\nUserName : \e[31m${adminusername}\e[0m "
 printf "\nPassword : \e[31m${adminpassword}\e[0m "
 printf "\nPort : \e[31m${port}\e[0m \n"
