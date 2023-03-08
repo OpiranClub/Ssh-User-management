@@ -4,5 +4,4 @@ for stable version go to the author page "HamedAp"
 
 
 
-bash <(curl -Ls https://raw.githubusercontent.com/OpiranClub/Ssh-User-management/master/install.sh --ipv4)
-
+bash <(curl -Ls (https://raw.githubusercontent.com/OpiranClub/Ssh-User-management/main/install.sh))
